@@ -1,0 +1,52 @@
+name: Process uploaded KMZ/KML
+
+on:
+  push:
+    paths:
+      - 'uploads/**'
+
+permissions:
+  contents: write
+
+jobs:
+  process_upload:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find and process KMZ/KML uploads
+        shell: pwsh
+        run: |
+          Write-Host "Checking uploads folder..."
+          if (-not (Test-Path uploads)) { Write-Host "No uploads folder present"; exit 0 }
+          $files = Get-ChildItem uploads -File -Recurse | Where-Object { $_.Extension -in @('.kmz','.kml') }
+          if ($files.Count -eq 0) { Write-Host "No KMZ/KML files found in uploads"; exit 0 }
+          Remove-Item -Recurse -Force data\kmz_extracted -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path data\kmz_extracted | Out-Null
+          foreach ($f in $files) {
+            Write-Host "Processing $($f.FullName)"
+            if ($f.Extension -ieq '.kmz') {
+              Expand-Archive -Path $f.FullName -DestinationPath data\kmz_extracted -Force
+              if (-not (Test-Path data\kmz_extracted\doc.kml)) {
+                $kml = Get-ChildItem data\kmz_extracted -Filter *.kml -Recurse | Select-Object -First 1
+                if ($kml) { Copy-Item $kml.FullName data\kmz_extracted\doc.kml -Force }
+              }
+            } else {
+              Copy-Item $f.FullName data\kmz_extracted\doc.kml -Force
+            }
+            pwsh -NoProfile -NoLogo -Command ".\\scripts\\parse_kml.ps1 -KmlPath 'data\\kmz_extracted\\doc.kml'"
+          }
+
+      - name: Commit generated data
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/kmz_extracted/doc.kml data/map.geojson data/map_points.csv || true
+          if (-n "$(git status --porcelain)") {
+            git commit -m "Automated: processed uploads and regenerated site data"
+            git push
+          } else {
+            Write-Host "No changes to commit"
+          }

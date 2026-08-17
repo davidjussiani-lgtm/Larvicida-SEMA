@@ -10,9 +10,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map)
 
 // Containers for layer control
-let pointsLayer = L.layerGroup().addTo(map)
-let linesLayer = L.layerGroup().addTo(map)
-let polysLayer = L.layerGroup().addTo(map)
+const folderLayers = {} // map folder name -> LayerGroup
+const generic = {
+  points: L.layerGroup().addTo(map),
+  lines: L.layerGroup().addTo(map),
+  polys: L.layerGroup().addTo(map)
+}
 
 function bindPopup(feature, layer){
   const props = feature.properties || {}
@@ -94,41 +97,71 @@ fetch('data/map_summary.json')
     console.error(err)
   })
 
-// Load GeoJSON and split by geometry type
+// Load GeoJSON and split by geometry type and folder
 fetch('data/map.geojson')
   .then(r=>r.json())
   .then(gj=>{
-    const points = L.geoJSON(gj, {
-      filter: f => f.geometry && f.geometry.type === 'Point',
-      pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius:6, fillColor:'#2b7', color:'#046', weight:1, fillOpacity:0.9 }),
-      onEachFeature: bindPopup
-    }).addTo(pointsLayer)
+    // helper: extract hex color from styleUrl like '#icon-1831-0F9D58'
+    function colorFromStyle(s) {
+      if (!s) return null
+      const m = /-([A-Fa-f0-9]{6})/.exec(s)
+      return m ? `#${m[1]}` : null
+    }
 
-    const lines = L.geoJSON(gj, {
-      filter: f => f.geometry && f.geometry.type === 'LineString',
-      style: { color:'#3388ff', weight:3 },
-      onEachFeature: bindPopup
-    }).addTo(linesLayer)
+    // create features layer but route features into folder-based LayerGroups
+    const geo = L.geoJSON(gj, {
+      pointToLayer: (f, latlng) => {
+        const props = f.properties || {}
+        const hex = colorFromStyle(props.styleUrl) || '#2b7'
+        return L.circleMarker(latlng, { radius:6, fillColor:hex, color:hex, weight:1, fillOpacity:0.9 })
+      },
+      style: (f) => {
+        const props = f.properties || {}
+        const hex = colorFromStyle(props.styleUrl) || '#ff7800'
+        return { color: hex, weight: 2, fillColor: hex, fillOpacity: 0.2 }
+      },
+      onEachFeature: (f, layer) => {
+        bindPopup(f, layer)
+        const props = f.properties || {}
+        const folder = props.folder || (props.layerName) || (props.collection) || 'Sem Camada'
+        if (!folderLayers[folder]) { folderLayers[folder] = L.layerGroup(); }
+        folderLayers[folder].addLayer(layer)
+        // also add to generic by geometry
+        if (f.geometry && f.geometry.type === 'Point') generic.points.addLayer(layer)
+        if (f.geometry && f.geometry.type === 'LineString') generic.lines.addLayer(layer)
+        if (f.geometry && f.geometry.type === 'Polygon') generic.polys.addLayer(layer)
+      }
+    })
 
-    const polys = L.geoJSON(gj, {
-      filter: f => f.geometry && f.geometry.type === 'Polygon',
-      style: { color:'#ff7800', weight:2, fillOpacity:0.2 },
-      onEachFeature: bindPopup
-    }).addTo(polysLayer)
+    // build overlays object: include folders (named layers) and generic groups
+    const overlays = { }
+    // add folder layers first
+    Object.keys(folderLayers).sort().forEach(fn=>{ overlays[fn] = folderLayers[fn] })
+    // generic categories grouped under short names if not already present
+    overlays['Pontos'] = generic.points
+    overlays['Linhas'] = generic.lines
+    overlays['Polígonos'] = generic.polys
 
-    // layer control
-    const overlays = { 'Pontos': pointsLayer, 'Linhas': linesLayer, 'Polígonos': polysLayer }
     L.control.layers(null, overlays, { collapsed: false }).addTo(map)
 
-    // fit to data
-    const all = L.featureGroup([points, lines, polys])
-    map.fitBounds(all.getBounds(), { padding: [20,20] })
+    // fit to data (all layers)
+    const allLayers = []
+    Object.values(folderLayers).forEach(lg=> allLayers.push(lg))
+    allLayers.push(generic.points, generic.lines, generic.polys)
+    const all = L.featureGroup(allLayers.reduce((acc, lg)=> acc.concat(lg.getLayers ? lg.getLayers() : []), []))
+    if (all.getLayers().length) map.fitBounds(all.getBounds(), { padding: [20,20] })
 
-    // populate layers list in sidebar (counts)
+    // populate sidebar layers list with folder counts
     const layersElInner = document.getElementById('layers')
     layersElInner.innerHTML = ''
-    const items = [ ['Pontos', points.getLayers().length], ['Linhas', lines.getLayers().length], ['Polígonos', polys.getLayers().length] ]
-    items.forEach(it=>{
+    Object.keys(folderLayers).sort().forEach(fn=>{
+      const li = document.createElement('li')
+      li.innerHTML = `<strong>${fn}</strong> <div class="muted">${folderLayers[fn].getLayers().length} itens</div>`
+      layersElInner.appendChild(li)
+    })
+    // also add generic counts
+    const genericItems = [ ['Pontos', generic.points.getLayers().length], ['Linhas', generic.lines.getLayers().length], ['Polígonos', generic.polys.getLayers().length] ]
+    genericItems.forEach(it=>{
       const li = document.createElement('li')
       li.innerHTML = `<strong>${it[0]}</strong> <div class="muted">${it[1]} itens</div>`
       layersElInner.appendChild(li)

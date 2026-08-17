@@ -14,6 +14,18 @@ foreach ($pm in $placemarks) {
   $name = if ($nameNode) { $nameNode.InnerText.Trim() } else { '' }
   $desc = if ($descNode) { $descNode.InnerText.Trim() } else { '' }
   $props = @{ name = $name; description = $desc }
+  # include styleUrl if present
+  $styleNode = $pm.SelectSingleNode("*[local-name()='styleUrl']")
+  if ($styleNode) { $props['styleUrl'] = $styleNode.InnerText.Trim() }
+  # determine containing Folder name (if any)
+  $parent = $pm.ParentNode
+  while ($parent -ne $null) {
+    if ($parent.LocalName -eq 'Folder') {
+      $fname = $parent.SelectSingleNode("*[local-name()='name']")
+      if ($fname) { $props['folder'] = $fname.InnerText.Trim(); break }
+    }
+    $parent = $parent.ParentNode
+  }
   # ExtendedData (iterate children)
   $ed = $pm.SelectSingleNode("*[local-name()='ExtendedData']")
   if ($ed) {

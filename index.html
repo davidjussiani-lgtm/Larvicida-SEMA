@@ -24,6 +24,15 @@
         <div id="summary"></div>
       </div>
       <div class="card">
+        <h3>Enviar KMZ / KML</h3>
+        <p class="muted">Envie um arquivo para atualizar o mapa automaticamente (requer implantação do endpoint serverless).</p>
+        <input id="uploadFile" type="file" accept=".kmz,.kml" />
+        <div>
+          <button id="uploadBtn" class="button">Enviar</button>
+        </div>
+        <div id="uploadStatus" class="muted" style="margin-top:8px"></div>
+      </div>
+      <div class="card">
         <h3>Camadas</h3>
         <ul id="layers"></ul>
       </div>

@@ -170,3 +170,39 @@ fetch('data/map.geojson')
   .catch(err=>{
     console.error('Erro carregando GeoJSON', err)
   })
+
+// Upload helper: read file as data URL and POST to serverless function
+document.addEventListener('DOMContentLoaded', ()=>{
+  const uploadBtn = document.getElementById('uploadBtn')
+  const uploadFile = document.getElementById('uploadFile')
+  const uploadStatus = document.getElementById('uploadStatus')
+  if (!uploadBtn || !uploadFile) return
+  uploadBtn.addEventListener('click', async ()=>{
+    const f = uploadFile.files[0]
+    if (!f) { uploadStatus.textContent = 'Selecione um arquivo .kmz ou .kml'; return }
+    uploadStatus.textContent = 'Preparando arquivo...'
+    const reader = new FileReader()
+    reader.onload = async function(e){
+      try {
+        const dataUrl = e.target.result
+        // strip prefix like data:application/octet-stream;base64,...
+        const base64 = dataUrl.split(',')[1]
+        uploadStatus.textContent = 'Enviando ao endpoint...'
+        const res = await fetch('/.netlify/functions/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: f.name, content: base64, commitMessage: `Upload ${f.name} via site` })
+        })
+        const json = await res.json()
+        if (res.ok) {
+          uploadStatus.textContent = 'Upload concluído — workflow GitHub acionado.'
+        } else {
+          uploadStatus.textContent = 'Erro: ' + (json.message || res.statusText)
+        }
+      } catch (err) {
+        uploadStatus.textContent = 'Erro no envio: ' + err.message
+      }
+    }
+    reader.readAsDataURL(f)
+  })
+})

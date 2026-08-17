@@ -20,7 +20,10 @@ const generic = {
 function bindPopup(feature, layer){
   const props = feature.properties || {}
   let html = '<div>'
-  if (props.name) html += `<strong>${props.name}</strong><br/>`
+  // show anonymized collaborator name when feature belongs to volunteer list
+  if (props.folder === 'Lista de Aplicadores Voluntarios' && props._anonName) {
+    html += `<strong>${props._anonName}</strong><br/>`
+  } else if (props.name) html += `<strong>${props.name}</strong><br/>`
   if (props.description) html += `<div>${props.description}</div>`
   // show some other props
   const keys = Object.keys(props).filter(k=>k !== 'name' && k !== 'description')
@@ -33,32 +36,17 @@ function bindPopup(feature, layer){
   layer.bindPopup(html)
 }
 
-// Load summary and set KML/CSV links
+// Load summary and prepare Google embed toggle (no download links)
 fetch('data/map_summary.json')
   .then(r=>r.json())
   .then(data=>{
     summaryEl.innerHTML = `<p><strong>Título:</strong> ${data.title}</p><p>${data.description}</p>`
-    kmlLink.href = data.kml_url
-    // add download links for generated files
-    const dlGeo = document.createElement('a')
-    dlGeo.href = 'data/map.geojson'
-    dlGeo.textContent = 'Baixar GeoJSON'
-    dlGeo.className = 'button'
-    dlGeo.style.marginLeft='0.5rem'
-    kmlLink.insertAdjacentElement('afterend', dlGeo)
-    const dlCsv = document.createElement('a')
-    dlCsv.href = 'data/map_points.csv'
-    dlCsv.textContent = 'Baixar CSV (pontos)'
-    dlCsv.className = 'button'
-    dlCsv.style.marginLeft='0.5rem'
-    dlGeo.insertAdjacentElement('afterend', dlCsv)
-    // Prepare Google embed toggle
+    // Prepare Google embed toggle (extract mid from kml_url)
     let mid = null
     try {
       const u = new URL(data.kml_url)
       mid = u.searchParams.get('mid')
     } catch (e) {
-      // fallback: try to extract mid with regex
       const m = /mid=([A-Za-z0-9_-]+)/.exec(data.kml_url)
       if (m) mid = m[1]
     }
@@ -75,7 +63,6 @@ fetch('data/map_summary.json')
         googleIframe.style.height = '100%'
         googleIframe.style.border = '0'
         googleIframe.id = 'googleEmbed'
-        // append inside map-wrap, hide leaflet container
         mapWrap.querySelector('#map').style.display = 'none'
         mapWrap.appendChild(googleIframe)
       } else {
@@ -109,6 +96,9 @@ fetch('data/map.geojson')
     }
 
     // create features layer but route features into folder-based LayerGroups
+    // collaborator counters to anonymize names inside volunteer folder
+    const collabCounters = {}
+
     const geo = L.geoJSON(gj, {
       pointToLayer: (f, latlng) => {
         const props = f.properties || {}
@@ -121,9 +111,15 @@ fetch('data/map.geojson')
         return { color: hex, weight: 2, fillColor: hex, fillOpacity: 0.2 }
       },
       onEachFeature: (f, layer) => {
-        bindPopup(f, layer)
         const props = f.properties || {}
         const folder = props.folder || (props.layerName) || (props.collection) || 'Sem Camada'
+        // anonymize volunteer names
+        if (folder === 'Lista de Aplicadores Voluntarios') {
+          if (!collabCounters[folder]) collabCounters[folder] = 0
+          collabCounters[folder] += 1
+          props._anonName = `Colaborador ${collabCounters[folder]}`
+        }
+        bindPopup(f, layer)
         if (!folderLayers[folder]) { folderLayers[folder] = L.layerGroup(); }
         folderLayers[folder].addLayer(layer)
         // also add to generic by geometry

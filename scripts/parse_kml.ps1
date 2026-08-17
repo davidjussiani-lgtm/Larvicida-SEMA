@@ -3,7 +3,7 @@ param(
 )
 Set-StrictMode -Version Latest
 if (-not (Test-Path $KmlPath)) { Write-Error "KML not found: $KmlPath"; exit 1 }
-[xml]$kml = Get-Content -Path $KmlPath -Raw
+[xml]$kml = Get-Content -Path $KmlPath -Raw -Encoding UTF8
 
 $placemarks = $kml.SelectNodes("//*[local-name() = 'Placemark']")
 $features = @()

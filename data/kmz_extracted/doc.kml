@@ -1117,16 +1117,8 @@
           </coordinates>
         </Point>
       </Placemark>
-      <Placemark>
-        <name>João C Volantruck</name>
-        <description>Grande foco de Larvas encontrado no dia 03/08/26. proprietário foi orientado e instruído sobre a correta aplicação do produto!  </description>
-        <styleUrl>#icon-1541-E65100</styleUrl>
-        <Point>
-          <coordinates>
-            -51.4832095,-23.6405607,0
-          </coordinates>
-        </Point>
-      </Placemark>
+      
+      
       <Placemark>
         <name>Raposa</name>
         <description>Aplicado em 11/08/26</description>

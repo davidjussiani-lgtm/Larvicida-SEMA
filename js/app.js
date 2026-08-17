@@ -138,14 +138,14 @@ fetch('data/map.geojson')
       }
     })
 
-    // build overlays object: include folders (named layers) and generic groups
-    const overlays = { }
-    // add folder layers first
-    Object.keys(folderLayers).sort().forEach(fn=>{ overlays[fn] = folderLayers[fn] })
-    // generic categories grouped under short names if not already present
-    overlays['Pontos'] = generic.points
-    overlays['Linhas'] = generic.lines
-    overlays['Polígonos'] = generic.polys
+    // build overlays object: include only the named folders the user requested
+    const overlays = {}
+    const desired = ['Aplicação Realizada pela SEMA', 'Lista de Aplicadores Voluntarios', 'Rios']
+    desired.forEach(name => {
+      // ensure a LayerGroup exists for the desired folder
+      if (!folderLayers[name]) folderLayers[name] = L.layerGroup().addTo(map)
+      overlays[name] = folderLayers[name]
+    })
 
     L.control.layers(null, overlays, { collapsed: false }).addTo(map)
 
@@ -156,19 +156,14 @@ fetch('data/map.geojson')
     const all = L.featureGroup(allLayers.reduce((acc, lg)=> acc.concat(lg.getLayers ? lg.getLayers() : []), []))
     if (all.getLayers().length) map.fitBounds(all.getBounds(), { padding: [20,20] })
 
-    // populate sidebar layers list with folder counts
+    // populate sidebar layers list showing only the desired folders
     const layersElInner = document.getElementById('layers')
     layersElInner.innerHTML = ''
-    Object.keys(folderLayers).sort().forEach(fn=>{
+    desired.forEach(fn=>{
+      const lg = folderLayers[fn]
+      const count = lg && lg.getLayers ? lg.getLayers().length : 0
       const li = document.createElement('li')
-      li.innerHTML = `<strong>${fn}</strong> <div class="muted">${folderLayers[fn].getLayers().length} itens</div>`
-      layersElInner.appendChild(li)
-    })
-    // also add generic counts
-    const genericItems = [ ['Pontos', generic.points.getLayers().length], ['Linhas', generic.lines.getLayers().length], ['Polígonos', generic.polys.getLayers().length] ]
-    genericItems.forEach(it=>{
-      const li = document.createElement('li')
-      li.innerHTML = `<strong>${it[0]}</strong> <div class="muted">${it[1]} itens</div>`
+      li.innerHTML = `<strong>${fn}</strong> <div class="muted">${count} itens</div>`
       layersElInner.appendChild(li)
     })
   })

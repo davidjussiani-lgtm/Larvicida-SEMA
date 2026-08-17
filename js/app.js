@@ -30,8 +30,8 @@ function bindPopup(feature, layer){
   }
   if (props.name) html += `<strong>${props.name}</strong><br/>`
   if (props.description) html += `<div>${props.description}</div>`
-  // show some other props (exclude common long fields)
-  const keys = Object.keys(props).filter(k=>!['name','description','_anonName'].includes(k))
+  // show some other props (exclude common long fields and internal metadata like folder/styleUrl)
+  const keys = Object.keys(props).filter(k=>!['name','description','_anonName','folder','styleUrl'].includes(k))
   if (keys.length){
     html += '<hr/><small>'
     keys.forEach(k=>{ html += `<strong>${k}:</strong> ${props[k]}<br/>` })

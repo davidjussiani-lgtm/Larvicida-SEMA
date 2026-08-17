@@ -49,6 +49,45 @@ fetch('data/map_summary.json')
     dlCsv.className = 'button'
     dlCsv.style.marginLeft='0.5rem'
     dlGeo.insertAdjacentElement('afterend', dlCsv)
+    // Prepare Google embed toggle
+    let mid = null
+    try {
+      const u = new URL(data.kml_url)
+      mid = u.searchParams.get('mid')
+    } catch (e) {
+      // fallback: try to extract mid with regex
+      const m = /mid=([A-Za-z0-9_-]+)/.exec(data.kml_url)
+      if (m) mid = m[1]
+    }
+    const showGoogleBtn = document.getElementById('showGoogle')
+    const showLocalBtn = document.getElementById('showLocal')
+    const mapWrap = document.getElementById('map-wrap')
+    let googleIframe = null
+    function showGoogle() {
+      if (!mid) { alert('ID do mapa Google não encontrado.'); return }
+      if (!googleIframe) {
+        googleIframe = document.createElement('iframe')
+        googleIframe.src = `https://www.google.com/maps/d/embed?mid=${mid}`
+        googleIframe.style.width = '100%'
+        googleIframe.style.height = '100%'
+        googleIframe.style.border = '0'
+        googleIframe.id = 'googleEmbed'
+        // append inside map-wrap, hide leaflet container
+        mapWrap.querySelector('#map').style.display = 'none'
+        mapWrap.appendChild(googleIframe)
+      } else {
+        mapWrap.querySelector('#map').style.display = 'none'
+        googleIframe.style.display = 'block'
+      }
+    }
+    function showLocal() {
+      if (googleIframe) { googleIframe.style.display = 'none' }
+      const mapDiv = mapWrap.querySelector('#map')
+      mapDiv.style.display = 'block'
+      setTimeout(()=>{ map.invalidateSize() }, 200)
+    }
+    if (showGoogleBtn) showGoogleBtn.addEventListener('click', showGoogle)
+    if (showLocalBtn) showLocalBtn.addEventListener('click', showLocal)
   })
   .catch(err=>{
     summaryEl.textContent = 'Não foi possível carregar os metadados do mapa.'

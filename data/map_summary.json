@@ -1,0 +1,56 @@
+{
+  "title": "Larvicida Atualizado - David Trevizan Giussani",
+  "description": "Mapa público criado no Google My Maps. Contém camadas com aplicadores voluntários, aplicações realizadas, reforços e rios/marcadores de municípios.",
+  "kml_url": "https://www.google.com/maps/d/kml?mid=1zIj9bwtWqLypSrZ-YsQCPWSLMFN-3V4",
+  "layers": [
+    {
+      "name": "Lista de Aplicadores Voluntarios",
+      "count": null,
+      "items": [
+        "Nicola Sigora",
+        "Luiz Carlos Rocha/Mario",
+        "Paroquia e Hospital - barracão da Canadá",
+        "Antônio Domingos de Almeida",
+        "... e outros (mais de 50)"
+      ]
+    },
+    {
+      "name": "Aplicação Realizada pela SEMA",
+      "count": null,
+      "items": [
+        "Aplicação Realizada pela SEMA (vários pontos listados)"
+      ]
+    },
+    {
+      "name": "Aplicação de Reforço",
+      "count": null,
+      "items": ["Aplicação de Reforço (pontos)" ]
+    },
+    {
+      "name": "Rios / Municípios",
+      "count": null,
+      "items": [
+        "Japira",
+        "Pirapó",
+        "Tibaji",
+        "Taquara",
+        "Bom",
+        "Três Bocas",
+        "Apucaraninha",
+        "Alegre",
+        "Dos Apertados",
+        "Cambará",
+        "Marumbi",
+        "Jacutinga",
+        "Do Cafezal",
+        "Cambira",
+        "Dos Dourados",
+        "Itacolomi",
+        "Do Cerne",
+        "Barra Funda",
+        "S. Cruz",
+        "Jataizinho"
+      ]
+    }
+  ]
+}

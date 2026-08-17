@@ -1,0 +1,13 @@
+# Ignore uploaded archives and local artifacts
+*.kmz
+*.zip
+data/kmz_extracted/images/
+data/kmz_extracted/*.png
+data/kmz_extracted/*.jpg
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# VS Code
+.vscode/

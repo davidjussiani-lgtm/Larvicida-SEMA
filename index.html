@@ -6,20 +6,40 @@
   <title>Larvicida - Mapa</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+q0XgM0VjvY1qvGkGkZ2eQv3w0XKpGk5f5R9gGIK0=" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
 </head>
 <body>
   <header>
-    <img src="assets/logo.svg" alt="Larvicida" class="logo">
-    <h1>Mapa — Larvicida Atualizado</h1>
+    <div class="brand">
+      <img src="assets/logo.svg" alt="Larvicida" class="logo">
+      <div>
+        <h1>Larvicida Atualizado</h1>
+        <p class="subtitle">Mapeamento público e dados de aplicação</p>
+      </div>
+    </div>
   </header>
 
   <main>
     <aside id="sidebar">
-      <h2>Resumo do mapa</h2>
-      <div id="summary"></div>
-      <h3>Camadas</h3>
-      <ul id="layers"></ul>
-      <a id="kmlLink" class="button" target="_blank">Baixar KML</a>
+      <div class="sidebar-header">
+        <div>
+          <h2>Resumo do mapa</h2>
+          <div id="summary"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Legenda</h3>
+        <div class="legend">
+          <div class="item"><img src="assets/marker-point.svg" alt="ponto"> Pontos</div>
+          <div class="item"><img src="assets/marker-line.svg" alt="linha"> Linhas</div>
+          <div class="item"><img src="assets/marker-polygon.svg" alt="polígono"> Polígonos</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Camadas</h3>
+        <ul id="layers"></ul>
+        <a id="kmlLink" class="button" target="_blank">Baixar KML</a>
+      </div>
     </aside>
 
     <section id="map-wrap">

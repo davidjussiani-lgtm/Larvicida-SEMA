@@ -22,11 +22,16 @@ function bindPopup(feature, layer){
   let html = '<div>'
   // show anonymized collaborator name when feature belongs to volunteer list
   if (props.folder === 'Lista de Aplicadores Voluntarios' && props._anonName) {
-    html += `<strong>${props._anonName}</strong><br/>`
-  } else if (props.name) html += `<strong>${props.name}</strong><br/>`
+    // For volunteer list show only the anonymized collaborator identifier
+    html += `<strong>${props._anonName}</strong>`
+    html += '</div>'
+    layer.bindPopup(html)
+    return
+  }
+  if (props.name) html += `<strong>${props.name}</strong><br/>`
   if (props.description) html += `<div>${props.description}</div>`
-  // show some other props
-  const keys = Object.keys(props).filter(k=>k !== 'name' && k !== 'description')
+  // show some other props (exclude common long fields)
+  const keys = Object.keys(props).filter(k=>!['name','description','_anonName'].includes(k))
   if (keys.length){
     html += '<hr/><small>'
     keys.forEach(k=>{ html += `<strong>${k}:</strong> ${props[k]}<br/>` })
@@ -117,7 +122,11 @@ fetch('data/map.geojson')
         if (folder === 'Lista de Aplicadores Voluntarios') {
           if (!collabCounters[folder]) collabCounters[folder] = 0
           collabCounters[folder] += 1
-          props._anonName = `Colaborador ${collabCounters[folder]}`
+            props._anonName = `Colaborador ${collabCounters[folder]}`
+            // remove other sensitive/extra properties from volunteer features so only the collaborator label remains
+            Object.keys(props).forEach(k=>{
+              if (!['_anonName','folder'].includes(k)) delete props[k]
+            })
         }
         bindPopup(f, layer)
         if (!folderLayers[folder]) { folderLayers[folder] = L.layerGroup(); }

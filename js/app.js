@@ -128,9 +128,16 @@ fetch('data/map.geojson')
     // collaborator counters to anonymize names inside volunteer folder
     const collabCounters = {}
 
+    // prepare custom icons
+    const mosquitoIcon = L.icon({ iconUrl: 'assets/mosquito.svg', iconSize: [28,28], iconAnchor: [14,28], popupAnchor: [0,-26] })
+
     const geo = L.geoJSON(gj, {
       pointToLayer: (f, latlng) => {
         const props = f.properties || {}
+        // use mosquito icon for SEMA application points
+        if (props.folder === 'Aplicação Realizada pela SEMA' || props.folder === 'Aplicação Realizada pela SEMA ') {
+          return L.marker(latlng, { icon: mosquitoIcon })
+        }
         const hex = colorFromStyle(props.styleUrl) || '#2b7'
         return L.circleMarker(latlng, { radius:6, fillColor:hex, color:hex, weight:1, fillOpacity:0.9 })
       },

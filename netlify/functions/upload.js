@@ -1,5 +1,3 @@
-const fetch = require('node-fetch')
-
 // Environment variables required:
 // GITHUB_TOKEN: personal access token (repo scope)
 // REPO_OWNER: repository owner (e.g. davidjussiani-lgtm)

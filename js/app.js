@@ -128,8 +128,24 @@ fetch('data/map.geojson')
     // collaborator counters to anonymize names inside volunteer folder
     const collabCounters = {}
 
-    // prepare custom icons
-    const mosquitoIcon = L.icon({ iconUrl: 'assets/mosquito.svg', iconSize: [28,28], iconAnchor: [14,28], popupAnchor: [0,-26] })
+    // prepare custom icons (use divIcon with inline SVG to avoid external loading issues)
+    const mosquitoSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="28" height="28">
+        <g fill="none" stroke="#ff7f2a" stroke-width="2">
+          <path d="M10 10c8 4 12 2 20 0" stroke-linecap="round"/>
+          <path d="M54 10c-8 4-12 2-20 0" stroke-linecap="round"/>
+        </g>
+        <g fill="#ff7f2a">
+          <ellipse cx="32" cy="32" rx="8" ry="10"/>
+          <rect x="30" y="14" width="4" height="12" rx="2"/>
+        </g>
+        <g stroke="#ff7f2a" stroke-width="2" fill="none">
+          <path d="M32 42c0 6 0 12 0 12" stroke-linecap="round"/>
+          <path d="M24 30c-6 2-10 6-14 10" stroke-linecap="round"/>
+          <path d="M40 30c6 2 10 6 14 10" stroke-linecap="round"/>
+        </g>
+      </svg>`
+    const mosquitoIcon = L.divIcon({ html: `<div style="width:28px;height:28px">${mosquitoSvg}</div>`, className: 'mosquito-div-icon', iconSize: [28,28], iconAnchor: [14,28], popupAnchor: [0,-26] })
 
     const geo = L.geoJSON(gj, {
       pointToLayer: (f, latlng) => {

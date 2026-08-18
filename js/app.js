@@ -2,12 +2,28 @@ const summaryEl = document.getElementById('summary')
 const layersEl = document.getElementById('layers')
 const kmlLink = document.getElementById('kmlLink')
 
-// Initialize Leaflet map
+// Initialize Leaflet map and basemaps
 const map = L.map('map').setView([-15.8, -47.9], 6)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+const tileBasic = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '© OpenStreetMap'
-}).addTo(map)
+})
+const tileSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+  attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'
+})
+// start with basic basemap
+tileBasic.addTo(map)
+
+function setBasemap(mode){
+  if (mode === 'sat'){
+    if (map.hasLayer(tileBasic)) map.removeLayer(tileBasic)
+    if (!map.hasLayer(tileSat)) map.addLayer(tileSat)
+  } else {
+    if (map.hasLayer(tileSat)) map.removeLayer(tileSat)
+    if (!map.hasLayer(tileBasic)) map.addLayer(tileBasic)
+  }
+}
 
 // Containers for layer control
 const folderLayers = {} // map folder name -> LayerGroup
@@ -176,6 +192,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const uploadBtn = document.getElementById('uploadBtn')
   const uploadFile = document.getElementById('uploadFile')
   const uploadStatus = document.getElementById('uploadStatus')
+  const btnBasic = document.getElementById('btnBasic')
+  const btnSat = document.getElementById('btnSat')
   if (!uploadBtn || !uploadFile) return
   uploadBtn.addEventListener('click', async ()=>{
     const f = uploadFile.files[0]
@@ -205,4 +223,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
     reader.readAsDataURL(f)
   })
+  // basemap toggle handlers
+  if (btnBasic && btnSat) {
+    btnBasic.addEventListener('click', ()=>{
+      setBasemap('basic')
+      btnBasic.style.opacity = '1'
+      btnSat.style.opacity = '0.7'
+    })
+    btnSat.addEventListener('click', ()=>{
+      setBasemap('sat')
+      btnSat.style.opacity = '1'
+      btnBasic.style.opacity = '0.7'
+    })
+    // initial visual state
+    btnBasic.style.opacity = '1'
+    btnSat.style.opacity = '0.85'
+  }
 })

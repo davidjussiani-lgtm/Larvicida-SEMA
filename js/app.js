@@ -44,6 +44,14 @@ function bindPopup(feature, layer){
     layer.bindPopup(html)
     return
   }
+  // For rivers, show only the name and hide all other details
+  if (props.folder === 'Rios') {
+    if (props.name) html += `<strong>${props.name}</strong>`
+    else html += '<strong>Rio</strong>'
+    html += '</div>'
+    layer.bindPopup(html)
+    return
+  }
   if (props.name) html += `<strong>${props.name}</strong><br/>`
   if (props.description) html += `<div>${props.description}</div>`
   // show some other props (exclude common long fields and internal metadata like folder/styleUrl)
